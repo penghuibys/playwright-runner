@@ -6,7 +6,7 @@ services:
     command: npm run dev
     volumes:
       - .:/home/appuser/app
-      # - /home/appuser/app/node_modules  # 避免本地node_modules覆盖容器内依赖
+      - /home/appuser/app/node_modules  # 避免本地node_modules覆盖容器内依赖
     ports:
       - "3000:3000"
     environment:
