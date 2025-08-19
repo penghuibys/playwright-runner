@@ -35,6 +35,10 @@ describe('Job Flow Integration Test', () => {
         { action: 'goto', url: 'https://example.com' },
         { action: 'waitForSelector', selector: 'h1' },
         { action: 'screenshot' }
+      ] as [
+        { action: 'goto'; url: string },
+        { action: 'waitForSelector'; selector: string },
+        { action: 'screenshot' }
       ]
     };
     
