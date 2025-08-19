@@ -1,57 +1,89 @@
-import { TaskParams } from '../types';
+import { JobData, Step } from '../types';
 
 /**
- * 验证任务参数
- * @param params 待验证的任务参数
- * @returns 验证结果
+ * Validates a step object to ensure it contains required properties
+ * @param step - Step to validate
+ * @returns Validation result with errors if any
  */
-export const validateTaskParams = (params: TaskParams) => {
+function validateStep(step: Step): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
-
-  // 验证浏览器类型
-  if (!['chromium', 'firefox', 'webkit'].includes(params.browser!)) {
-    errors.push(`Invalid browser type: ${params.browser}. Allowed: chromium, firefox, webkit`);
+  
+  if (!step.action) {
+    errors.push('Step action is required');
   }
-
-  // 验证步骤数组
-  if (!Array.isArray(params.steps)) {
-    errors.push('Steps must be an array');
-  } else {
-    // 验证每个步骤
-    params.steps.forEach((step, index) => {
-      if (!step || typeof step !== 'object' || !step.action) {
-        errors.push(`Step ${index}: Missing or invalid action`);
-        return;
+  
+  // Validate required properties for specific actions
+  switch (step.action) {
+    case 'goto':
+      if (!step.url) errors.push('"url" is required for "goto" action');
+      break;
+    case 'click':
+    case 'fill':
+    case 'waitForSelector':
+      if (!step.selector) errors.push(`"selector" is required for "${step.action}" action`);
+      if (step.action === 'fill' && step.value === undefined) {
+        errors.push('"value" is required for "fill" action');
       }
-
-      // 验证特定步骤的必填字段
-      switch (step.action) {
-        case 'goto':
-          if (!step.url || typeof step.url !== 'string') {
-            errors.push(`Step ${index} (goto): Missing or invalid URL`);
-          }
-          break;
-        case 'click':
-        case 'fill':
-        case 'waitForSelector':
-          if (!step.selector || typeof step.selector !== 'string') {
-            errors.push(`Step ${index} (${step.action}): Missing or invalid selector`);
-          }
-          if (step.action === 'fill' && (step.value === undefined || typeof step.value !== 'string')) {
-            errors.push(`Step ${index} (fill): Missing or invalid value`);
-          }
-          break;
-      }
-    });
+      break;
+    case 'screenshot':
+      if (!step.path) errors.push('"path" is required for "screenshot" action');
+      break;
+    case 'evaluate':
+      if (!step.expression) errors.push('"expression" is required for "evaluate" action');
+      break;
   }
-
-  // 验证超时时间
-  if (params.timeout !== undefined && (typeof params.timeout !== 'number' || params.timeout <= 0)) {
-    errors.push('Timeout must be a positive number');
-  }
-
+  
   return {
     isValid: errors.length === 0,
-    errors,
+    errors
   };
-};
+}
+
+/**
+ * Validates job data to ensure it meets required format
+ * @param data - Job data to validate
+ * @returns Validation result with errors if any
+ */
+export function validateJobData(data: JobData): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  // Basic validation
+  if (!data) {
+    errors.push('Job data cannot be empty');
+    return { isValid: false, errors };
+  }
+  
+  // Validate steps array
+  if (!Array.isArray(data.steps)) {
+    errors.push('"steps" must be an array');
+  } else {
+    if (data.steps.length === 0) {
+      errors.push('Job must contain at least one step');
+    } else {
+      // Validate each step
+      data.steps.forEach((step, index) => {
+        const stepValidation = validateStep(step);
+        if (!stepValidation.isValid) {
+          stepValidation.errors.forEach(error => 
+            errors.push(`Step ${index + 1}: ${error}`)
+          );
+        }
+      });
+    }
+  }
+  
+  // Validate browser type if provided
+  if (data.browser && !['chromium', 'firefox', 'webkit'].includes(data.browser)) {
+    errors.push('"browser" must be one of: chromium, firefox, webkit');
+  }
+  
+  // Validate timeout if provided
+  if (data.timeout && (typeof data.timeout !== 'number' || data.timeout <= 0)) {
+    errors.push('"timeout" must be a positive number');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}

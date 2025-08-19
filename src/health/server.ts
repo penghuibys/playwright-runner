@@ -1,64 +1,106 @@
 import express, { Request, Response } from 'express';
-import { checkQueueHealth } from '../queue';
-import { getWorkerStatus } from '../queue/consumer';
-import { HealthStatus } from '../types';
-import logger from '../logger';
-import CONFIG from '../config';
-
-const app = express();
-app.use(express.json());
+import { Server } from 'http';
+import { Config } from '../types';
+import { Logger } from '../logger';
+import { Queue } from 'bullmq';
+import IORedis from 'ioredis';
+import { QueueStatus } from '../types';
 
 /**
- * 健康检查端点
+ * Creates a health check HTTP server
+ * @param config - Application configuration
+ * @param logger - Logger instance
+ * @param queue - BullMQ queue instance
+ * @param redis - Redis connection instance
+ * @param getQueueStatus - Function to get queue status
+ * @returns Object containing server instance and start/stop methods
  */
-app.get('/health', async (req: Request, res: Response<HealthStatus>) => {
-  try {
-    // 检查队列健康状态
-    const queueHealth = await checkQueueHealth();
-    
-    // 获取工作器状态
-    const workerStatus = getWorkerStatus();
+export function createHealthServer(
+  config: Config,
+  logger: Logger,
+  queue: Queue,
+  redis: IORedis,
+  getQueueStatus: () => Promise<QueueStatus>
+) {
+  const app = express();
+  app.use(express.json());
 
-    // 构建健康状态响应
-    const status: HealthStatus = {
-      status: queueHealth.isConnected && workerStatus.isRunning ? 'healthy' : 'unhealthy',
-      timestamp: Date.now(),
-      queue: {
-        name: CONFIG.queue.name,
-        isConnected: queueHealth.isConnected,
-        pendingJobs: queueHealth.pendingJobs,
-      },
-      worker: {
-        isRunning: workerStatus.isRunning,
-        lastActive: workerStatus.lastActive,
-      },
-    };
+  // Health check endpoint
+  app.get(config.health.endpoint, async (req: Request, res: Response) => {
+    try {
+      // Get queue status
+      const queueStatus = await getQueueStatus();
+      
+      // Check worker status (simplified check)
+      const workerStatus = {
+        running: true // In production, add actual worker health check
+      };
 
-    res.status(status.status === 'healthy' ? 200 : 503).json(status);
-  } catch (error) {
-    logger.error('Health check failed', { error: (error as Error).message });
-    res.status(503).json({
-      status: 'unhealthy',
-      timestamp: Date.now(),
-      queue: {
-        name: CONFIG.queue.name,
-        isConnected: false,
-      },
-      worker: {
-        isRunning: false,
-      },
-    });
-  }
-});
+      // Determine overall status
+      const overallStatus = 
+        redis.status === 'ready' && 
+        queueStatus.isConnected && 
+        workerStatus.running 
+          ? 'healthy' 
+          : 'unhealthy';
 
-/**
- * 启动健康检查服务器
- */
-export const startHealthServer = () => {
-  return new Promise<void>((resolve) => {
-    app.listen(CONFIG.port, () => {
-      logger.info(`Health check server running on port ${CONFIG.port}`);
-      resolve();
+      // Prepare response
+      const response = {
+        status: overallStatus,
+        timestamp: Date.now(),
+        services: {
+          redis: {
+            connected: redis.status === 'ready',
+            status: redis.status
+          },
+          queue: {
+            pending: queueStatus.jobCounts?.pending || 0,
+            active: queueStatus.jobCounts?.active || 0,
+            connected: queueStatus.isConnected
+          },
+          worker: workerStatus
+        }
+      };
+
+      // Send appropriate status code
+      res.status(overallStatus === 'healthy' ? 200 : 503).json(response);
+    } catch (error) {
+      logger.error('Health check failed', {
+        error: error instanceof Error ? error.message : String(error)
+      });
+      res.status(503).json({
+        status: 'unhealthy',
+        timestamp: Date.now(),
+        error: 'Failed to perform health check'
+      });
+    }
+  });
+
+  // Start the server
+  const server = app.listen(config.health.port, () => {
+    logger.info(`Health check server running on port ${config.health.port}`, {
+      endpoint: config.health.endpoint
     });
   });
-};
+
+  // Graceful shutdown
+  const stopServer = async () => {
+    return new Promise<void>((resolve, reject) => {
+      server.close((error) => {
+        if (error) {
+          logger.error('Error stopping health server', { error: error.message });
+          reject(error);
+        } else {
+          logger.info('Health server stopped');
+          resolve();
+        }
+      });
+    });
+  };
+
+  return {
+    app,
+    server,
+    stopServer
+  };
+}

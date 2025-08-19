@@ -1,52 +1,77 @@
-import { Queue, Worker, ConnectionOptions } from 'bullmq';
-import IORedis from 'ioredis';
-import { QUEUE_CONFIG } from '../config';
-import { TaskParams, TaskResult } from '../types';
-import logger from '../logger';
+// 确保导入路径和类型定义正确匹配
+import { Config } from '../types/index';  // 显式指定index.ts以确保正确导入
+import { Logger, logger } from '../logger/index';  // 导入实际的Logger类型和实例
 
-// 创建Redis连接
-const redisConnection = new IORedis({
-  host: QUEUE_CONFIG.redis.host,
-  port: QUEUE_CONFIG.redis.port,
-  password: QUEUE_CONFIG.redis.password,
-  maxRetriesPerRequest: null,
-  enableReadyCheck: true,
-});
+/**
+ * Initializes the Redis connection and job queue
+ * @param config - Application configuration
+ * @param logger - Logger instance
+ * @returns Object containing queue and redis connection
+ */
+export function initializeQueue(config: Config, logger: Logger) {
+  // 确保引入所需依赖
+  const { Queue } = require('bullmq');  // 替代import以避免潜在的循环依赖
+  const IORedis = require('ioredis');
 
-// 监听Redis连接事件
-redisConnection.on('connect', () => {
-  logger.info('Redis connection established');
-});
+  // Create Redis connection
+  const redis = new IORedis({
+    host: config.redis.host,
+    port: config.redis.port,
+    password: config.redis.password,
+    db: config.redis.db,
+    maxRetriesPerRequest: null,
+  });
 
-redisConnection.on('error', (error) => {
-  logger.error('Redis connection error', { error: error.message });
-});
+  // Handle Redis connection events
+  redis.on('connect', () => {
+    logger.info('Connected to Redis');
+  });
 
-// 创建任务队列
-export const jobQueue = new Queue<TaskParams, TaskResult>(
-  QUEUE_CONFIG.name,
-  {
-    connection: redisConnection,
-    defaultJobOptions: QUEUE_CONFIG.defaultJobOptions,
-  }
-);
+  redis.on('error', (error: Error) => {
+    logger.error('Redis connection error', { error: error.message });
+  });
 
-// 导出Worker类型和连接
-export { Worker, redisConnection };
+  // Create job queue
+  const jobQueue = new Queue(config.queue.name, {
+    connection: redis,
+    defaultJobOptions: {
+      attempts: config.queue.defaultAttempts,
+      removeOnComplete: config.queue.removeOnComplete,
+      removeOnFail: config.queue.removeOnFail,
+    },
+  });
 
-// 检查队列状态
-export const checkQueueHealth = async () => {
-  try {
-    const metrics = await jobQueue.getMetrics();
-    return {
-      isConnected: redisConnection.status === 'ready',
-      pendingJobs: metrics.waiting,
-    };
-  } catch (error) {
-    logger.error('Failed to check queue health', { error: (error as Error).message });
-    return {
-      isConnected: false,
-      pendingJobs: 0,
-    };
-  }
-};
+  /**
+   * Gets current queue status and metrics
+   */
+  const getQueueStatus = async () => {
+    try {
+      const metrics = await jobQueue.getMetrics();
+      const pendingJobs = await jobQueue.getWaitingCount();
+      const activeJobs = await jobQueue.getActiveCount();
+
+      return {
+        isConnected: redis.status === 'ready',
+        metrics,
+        jobCounts: {
+          pending: pendingJobs,
+          active: activeJobs
+        }
+      };
+    } catch (error) {
+      logger.error('Failed to retrieve queue status', {
+        error: error instanceof Error ? error.message : String(error)
+      });
+      return {
+        isConnected: false,
+        error: 'Failed to retrieve queue status'
+      };
+    }
+  };
+
+  return {
+    jobQueue,
+    redis,
+    getQueueStatus
+  };
+}

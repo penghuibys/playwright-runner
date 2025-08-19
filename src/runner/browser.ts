@@ -1,72 +1,82 @@
 import { Browser, chromium, firefox, webkit } from 'playwright';
-import { BROWSER_CONFIG } from '../config';
-import { TaskParams } from '../types';
-import { createJobLogger } from '../logger';
+import { Config } from '../types';
+import { Logger } from '../logger';
+
+// 定义浏览器实例创建选项接口
+export interface BrowserInstanceOptions {
+  jobId: string;
+  browserType?: 'chromium' | 'firefox' | 'webkit';
+  config: Config;
+  logger: Logger;
+}
+
+// 定义浏览器实例关闭选项接口
+export interface BrowserCloseOptions {
+  jobId: string;
+  logger: Logger;
+}
 
 /**
- * 根据任务参数创建浏览器实例
- * @param jobId 任务ID
- * @param params 任务参数
- * @returns 浏览器实例
+ * 创建浏览器实例（仅接受2个参数：选项对象和可选的启动选项）
+ * @param options - 浏览器实例创建选项
+ * @param launchOptions - 额外的浏览器启动选项（可选）
+ * @returns 创建的浏览器实例
  */
-export const createBrowserInstance = async (
-  jobId: string,
-  params: TaskParams
-): Promise<Browser> => {
-  const logger = createJobLogger(jobId);
-  logger.info('Creating browser instance', { browser: params.browser });
-
-  try {
-    let browser: Browser;
-    
-    // 根据指定浏览器类型启动
-    switch (params.browser) {
-      case 'chromium':
-        browser = await chromium.launch({
-          headless: BROWSER_CONFIG.headless,
-          args: BROWSER_CONFIG.args,
-        });
-        break;
-      case 'firefox':
-        browser = await firefox.launch({
-          headless: BROWSER_CONFIG.headless,
-          args: BROWSER_CONFIG.args,
-        });
-        break;
-      case 'webkit':
-        browser = await webkit.launch({
-          headless: BROWSER_CONFIG.headless,
-        });
-        break;
-      default:
-        throw new Error(`Unsupported browser: ${params.browser}`);
-    }
-
-    logger.info('Browser instance created successfully');
-    return browser;
-  } catch (error) {
-    logger.error('Failed to create browser instance', { error: (error as Error).message });
-    throw error;
-  }
-};
-
-/**
- * 关闭浏览器实例
- * @param browser 浏览器实例
- * @param jobId 任务ID
- */
-export const closeBrowserInstance = async (browser: Browser, jobId: string): Promise<void> => {
-  const logger = createJobLogger(jobId);
+export async function createBrowserInstance(
+  options: BrowserInstanceOptions,
+  launchOptions?: Record<string, any>
+): Promise<Browser> {
+  const { jobId, browserType = 'chromium', config, logger } = options;
   
-  if (!browser) {
-    logger.info('Browser instance already closed');
-    return;
+  logger.info('Creating browser instance', { jobId, browserType });
+  
+  // 选择浏览器类型
+  const browserLauncher = {
+    chromium,
+    firefox,
+    webkit
+  }[browserType];
+  
+  if (!browserLauncher) {
+    throw new Error(`Unsupported browser type: ${browserType}`);
   }
+  
+  // 合并浏览器配置
+  const browserOptions = {
+    headless: config.browser.headless,
+    slowMo: config.browser.slowMo,
+    timeout: config.browser.timeout,
+    ...launchOptions
+  };
+  
+  // 启动浏览器
+  const browser = await browserLauncher.launch(browserOptions);
+  
+  logger.info('Browser instance created successfully', { jobId, browserType });
+  
+  return browser;
+}
 
-  try {
-    await browser.close();
-    logger.info('Browser instance closed successfully');
-  } catch (error) {
-    logger.error('Failed to close browser instance', { error: (error as Error).message });
+/**
+ * 关闭浏览器实例（仅接受2个参数：浏览器实例和选项对象）
+ * @param browser - 要关闭的浏览器实例
+ * @param options - 关闭选项
+ */
+export async function closeBrowserInstance(
+  options: BrowserCloseOptions,
+  browser?: Browser
+): Promise<void> {
+  const { jobId, logger } = options;
+  
+  if (browser) {
+    try {
+      await browser.close();
+      logger.info('Browser instance closed successfully', { jobId });
+    } catch (error) {
+      logger.error('Failed to close browser instance', { 
+        jobId, 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
   }
-};
+}
