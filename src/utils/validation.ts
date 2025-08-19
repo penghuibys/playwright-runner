@@ -9,7 +9,7 @@ export const validateTaskParams = (params: TaskParams) => {
   const errors: string[] = [];
 
   // 验证浏览器类型
-  if (!['chromium', 'firefox', 'webkit'].includes(params.browser)) {
+  if (!['chromium', 'firefox', 'webkit'].includes(params.browser!)) {
     errors.push(`Invalid browser type: ${params.browser}. Allowed: chromium, firefox, webkit`);
   }
 

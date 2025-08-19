@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
-import { QueueConfig } from './queue';
-import { BrowserConfig } from './browser';
+import { QUEUE_CONFIG } from './queue';
+import { BROWSER_CONFIG } from './browser';
 
 // 加载环境变量
 dotenv.config();

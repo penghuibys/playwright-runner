@@ -30,7 +30,7 @@ export const createWorker = () => {
       });
 
       // 执行任务
-      return executeTask(job.id, job.data);
+      return executeTask(job.id!, job.data);
     },
     {
       connection: redisConnection,

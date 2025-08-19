@@ -19,13 +19,13 @@ export const executeTask = async (
   const startTime = Date.now();
 
   try {
-    logger.info('Starting task execution', { browser: params.browser, stepsCount: params.steps.length });
+    logger.info('Starting task execution', { browser: params.browser, stepsCount: params.steps!.length });
 
     // 创建浏览器实例
     browser = await createBrowserInstance(jobId, params);
 
     // 执行任务步骤
-    const stepResult = await executeSteps(browser, jobId, params.steps);
+    const stepResult = await executeSteps(browser, jobId, params.steps!);
 
     // 计算执行时间
     const duration = Date.now() - startTime;
