@@ -58,7 +58,7 @@ export const createBrowserInstance = async (
 export const closeBrowserInstance = async (browser: Browser, jobId: string): Promise<void> => {
   const logger = createJobLogger(jobId);
   
-  if (!browser || browser.isClosed()) {
+  if (!browser) {
     logger.info('Browser instance already closed');
     return;
   }

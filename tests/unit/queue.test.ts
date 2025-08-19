@@ -20,10 +20,10 @@ describe('Queue Unit Tests', () => {
   });
 
   test('Should submit a valid job', async () => {
-    const jobParams = {
-      browser: 'chromium',
-      steps: [{ action: 'goto', url: 'https://example.com' }],
-    };
+      const jobParams = {
+        browser: 'chromium' as const,
+        steps: [{ action: 'goto' as const, url: 'https://example.com' }]
+      };
 
     const jobId = await submitJob(jobParams);
     expect(jobId).toBeDefined();

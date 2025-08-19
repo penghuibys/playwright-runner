@@ -20,13 +20,13 @@ describe('Runner Unit Tests', () => {
   
   test('Should create browser instance', () => {
     expect(browser).toBeDefined();
-    expect(browser.isClosed()).toBe(false);
+    expect(browser.isConnected()).toBe(true);
   });
   
   test('Should execute simple steps', async () => {
     const steps = [
-      { action: 'goto', url: 'https://example.com' },
-      { action: 'waitForSelector', selector: 'h1' }
+      { action: 'goto' as const, url: 'https://example.com' },
+      { action: 'waitForSelector' as const, selector: 'h1' }
     ];
     
     const result = await executeSteps(browser, jobId, steps);
