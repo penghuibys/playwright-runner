@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: playwright-runner-runner-1
+    command: npm run dev
+    volumes:
+      - .:/home/appuser/app
+      - /home/appuser/app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+    env_file:
+      - .env   #自动加载 .env 文件里的变量
+
+  redis:
+    image: redis:7.2
+    container_name: playwright-runner-redis-1
+    ports:
+      - "6379:6379"

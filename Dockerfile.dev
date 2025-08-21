@@ -1,0 +1,31 @@
+FROM node:18-slim
+
+# 安装 Playwright 所需依赖
+RUN apt-get update && apt-get install -y \
+    libnss3 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libpango-1.0-0 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /home/appuser/app
+
+# 先复制依赖文件并安装（这里会把 devDependencies 全部装上）
+COPY package*.json ./
+RUN npm install
+
+# 复制源码
+COPY . .
+
+# 创建非 root 用户并切换
+RUN useradd -m appuser && chown -R appuser:appuser /home/appuser
+USER appuser
+
+CMD ["npm", "run", "dev"]
