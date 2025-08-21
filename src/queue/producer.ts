@@ -19,7 +19,7 @@ export const submitJob = async (params: TaskParams): Promise<string> => {
   try {
     // 添加任务到队列
     const job = await jobQueue.add('browser-task', params);
-    logger.info('Task submitted to queue', { jobId: job.id, browser: params.browser });
+    logger.info('Task submitted to queue', { jobId: job.id, browser: params.browser || 'default', stepsCount: params.steps.length });
     return job.id!;
   } catch (error) {
     logger.error('Failed to submit task', { error: (error as Error).message });

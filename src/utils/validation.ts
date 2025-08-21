@@ -9,13 +9,15 @@ export const validateTaskParams = (params: TaskParams) => {
   const errors: string[] = [];
 
   // 验证浏览器类型
-  if (!['chromium', 'firefox', 'webkit'].includes(params.browser)) {
+  if (params.browser && !['chromium', 'firefox', 'webkit'].includes(params.browser)) {
     errors.push(`Invalid browser type: ${params.browser}. Allowed: chromium, firefox, webkit`);
   }
 
   // 验证步骤数组
-  if (!Array.isArray(params.steps)) {
-    errors.push('Steps must be an array');
+  if (!params.steps || !Array.isArray(params.steps)) {
+    errors.push('Steps must be a non-empty array');
+  } else if (params.steps.length === 0) {
+    errors.push('Steps array cannot be empty');
   } else {
     // 验证每个步骤
     params.steps.forEach((step, index) => {
