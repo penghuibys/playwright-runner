@@ -31,10 +31,11 @@ export const executeTask = async (
     const duration = Date.now() - startTime;
 
     const result: TaskResult = {
-      status: 'success',
+      status: 'completed',
       jobId,
       stepsExecuted: stepResult.stepsExecuted,
       duration,
+      totalSteps: stepResult.steps || params.steps.length,
     };
 
     logger.info('Task execution completed successfully', {
@@ -50,6 +51,7 @@ export const executeTask = async (
       status: 'failed',
       jobId,
       stepsExecuted: 0, // 实际执行的步骤数在executeSteps中处理
+      totalSteps: params.steps.length,
       duration,
       error: (error as Error).message,
     };

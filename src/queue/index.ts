@@ -40,13 +40,15 @@ export const checkQueueHealth = async () => {
     const metrics = await jobQueue.getMetrics();
     return {
       isConnected: redisConnection.status === 'ready',
-      pendingJobs: metrics.waiting,
+      pendingJobs:  0,
+      name: QUEUE_CONFIG.name
     };
   } catch (error) {
     logger.error('Failed to check queue health', { error: (error as Error).message });
     return {
       isConnected: false,
       pendingJobs: 0,
+      name: QUEUE_CONFIG.name
     };
   }
 };

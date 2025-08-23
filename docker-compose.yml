@@ -7,8 +7,7 @@ services:
       target: base # 使用基础镜像进行开发
     command: npm run dev
     volumes:
-      - .:/home/appuser/app
-      - /home/appuser/app/node_modules
+      - .:/home/appuser/app:cached
     ports:
       - "3000:3000"
     environment:

@@ -14,7 +14,7 @@ export const createBrowserInstance = async (
   params: TaskParams
 ): Promise<Browser> => {
   const logger = createJobLogger(jobId);
-  logger.info('Creating browser instance', { browser: params.browser });
+  logger.info('Creating browser instance', { browser: params.browser || 'default' });
 
   try {
     let browser: Browser;
@@ -39,7 +39,13 @@ export const createBrowserInstance = async (
         });
         break;
       default:
-        throw new Error(`Unsupported browser: ${params.browser}`);
+        // 默认使用chromium
+        browser = await chromium.launch({
+          headless: BROWSER_CONFIG.headless,
+          args: BROWSER_CONFIG.args,
+        });
+        logger.info(`Using default browser: chromium (requested: ${params.browser})`);
+        break;
     }
 
     logger.info('Browser instance created successfully');
@@ -58,7 +64,7 @@ export const createBrowserInstance = async (
 export const closeBrowserInstance = async (browser: Browser, jobId: string): Promise<void> => {
   const logger = createJobLogger(jobId);
   
-  if (!browser || browser.isClosed()) {
+  if (!browser || browser.isConnected() === false) {
     logger.info('Browser instance already closed');
     return;
   }

@@ -30,7 +30,7 @@ export const createWorker = () => {
       });
 
       // 执行任务
-      return executeTask(job.id, job.data);
+      return executeTask(job.id!, job.data);
     },
     {
       connection: redisConnection,
@@ -44,10 +44,12 @@ export const createWorker = () => {
     workerStatus.isRunning = true;
   });
 
-  worker.on('completed', (job) => {
+  worker.on('completed', (job, result: TaskResult) => {
     logger.info('Job processing completed', {
       jobId: job.id,
       duration: job.processedOn ? job.finishedOn! - job.processedOn : 0,
+      stepsExecuted: result.stepsExecuted,
+      totalSteps: result.totalSteps
     });
   });
 
@@ -55,11 +57,23 @@ export const createWorker = () => {
     logger.error('Job processing failed', {
       jobId: job?.id,
       error: err.message,
+      stepsExecuted: job?.returnvalue?.stepsExecuted || 0,
+      totalSteps: job?.returnvalue?.totalSteps || 0
     });
   });
 
   worker.on('error', (err) => {
     logger.error('Worker error occurred', { error: err.message });
+    workerStatus.isRunning = false;
+  });
+
+  worker.on('closing', () => {
+    logger.info('Worker is closing');
+    workerStatus.isRunning = false;
+  });
+
+  worker.on('closed', () => {
+    logger.info('Worker has been closed');
     workerStatus.isRunning = false;
   });
 

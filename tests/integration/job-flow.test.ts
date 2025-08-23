@@ -15,7 +15,7 @@ describe('Job Flow Integration Test', () => {
     
     // 等待工作器准备就绪
     await new Promise(resolve => {
-      worker.on('ready', () => resolve);
+      worker.on('ready', () => resolve(void 0));
     });
   });
   
@@ -29,17 +29,16 @@ describe('Job Flow Integration Test', () => {
   });
   
   test('Should complete a full job flow: submit → process → complete', async () => {
-    const testJobParams = {
-      browser: 'chromium' as const,
-      steps: [
-        { action: 'goto', url: 'https://example.com' },
-        { action: 'waitForSelector', selector: 'h1' },
-        { action: 'screenshot' }
-      ]
-    };
     
     // 提交任务
-    const jobId = await submitJob(testJobParams);
+    const jobId = await submitJob({
+      browser: 'chromium' as const,
+      steps: [
+        { action: 'goto' as const, url: 'https://example.com' },
+        { action: 'waitForSelector' as const, selector: 'h1' },
+        { action: 'screenshot' as const }
+      ]
+    });
     expect(jobId).toBeDefined();
     
     // 等待任务完成
@@ -50,17 +49,18 @@ describe('Job Flow Integration Test', () => {
         }
       });
       
-      worker.on('failed', (job) => {
+      worker.on('failed', (job, error) => {
         if (job?.id === jobId) {
-          resolve({ status: 'failed', jobId });
+          resolve({ status: 'failed', jobId, error: error.message });
         }
       });
     });
     
     // 验证结果
-    expect(jobResult).toHaveProperty('status', 'success');
+    expect(jobResult).toHaveProperty('status', 'completed');
     expect(jobResult).toHaveProperty('jobId', jobId);
     expect(jobResult).toHaveProperty('stepsExecuted', 3);
+    expect(jobResult).toHaveProperty('totalSteps', 3);
     expect(jobResult).toHaveProperty('duration');
   });
 });
