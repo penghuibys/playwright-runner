@@ -67,6 +67,16 @@ export const createWorker = () => {
     workerStatus.isRunning = false;
   });
 
+  worker.on('closing', () => {
+    logger.info('Worker is closing');
+    workerStatus.isRunning = false;
+  });
+
+  worker.on('closed', () => {
+    logger.info('Worker has been closed');
+    workerStatus.isRunning = false;
+  });
+
   return worker;
 };
 
