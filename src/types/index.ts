@@ -22,7 +22,7 @@ export interface TaskParams {
  * 任务执行结果类型
  */
 export interface TaskResult {
-  status: 'success' | 'failed';
+  status: 'success' | 'failed' | 'completed';
   jobId: string;
   stepsExecuted: number;
   totalSteps?: number;

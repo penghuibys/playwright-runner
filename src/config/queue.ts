@@ -16,7 +16,7 @@ export interface QueueConfig {
 export const QUEUE_CONFIG: QueueConfig = {
   name: process.env.QUEUE_NAME || 'playwright-jobs',
   redis: {
-    host: process.env.REDIS_HOST || 'redis',
+    host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
     password: process.env.REDIS_PASSWORD,
   },

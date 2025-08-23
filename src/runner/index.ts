@@ -31,7 +31,7 @@ export const executeTask = async (
     const duration = Date.now() - startTime;
 
     const result: TaskResult = {
-      status: 'success',
+      status: 'completed',
       jobId,
       stepsExecuted: stepResult.stepsExecuted,
       duration,

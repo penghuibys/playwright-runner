@@ -57,7 +57,7 @@ describe('Job Flow Integration Test', () => {
     });
     
     // 验证结果
-    expect(jobResult).toHaveProperty('status', 'success');
+    expect(jobResult).toHaveProperty('status', 'completed');
     expect(jobResult).toHaveProperty('jobId', jobId);
     expect(jobResult).toHaveProperty('stepsExecuted', 3);
     expect(jobResult).toHaveProperty('totalSteps', 3);
