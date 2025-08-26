@@ -1,5 +1,6 @@
 import { Worker } from 'bullmq';
 import { redisConnection, checkQueueHealth } from './index';
+import { QUEUE_CONFIG } from '../config';
 import { TaskParams, TaskResult } from '../types';
 import { executeTask } from '../runner';
 import logger from '../logger';
@@ -18,7 +19,7 @@ export const createWorker = () => {
   logger.info('Initializing task worker');
 
   const worker = new Worker<TaskParams, TaskResult>(
-    'playwright-jobs',
+    QUEUE_CONFIG.name,
     async (job) => {
       // 更新工作器状态
       workerStatus.isRunning = true;

@@ -29,68 +29,52 @@ export const executeSteps = async (
     // 执行每个步骤
     for (const [index, step] of steps.entries()) {
       stepsExecuted = index + 1;
-      logger.info(`Executing step ${stepsExecuted}`, { action: step.action || 'unknown' });
+      logger.info(`Executing step ${stepsExecuted}`, { action: step.action });
 
       // 根据步骤类型执行相应操作
-      const action = step.action || 'unknown';
-      switch (action) {
+      switch (step.action) {
         case 'goto':
-          if ('url' in step) {
-            await page.goto(step.url, {
-              timeout: step.timeout || BROWSER_CONFIG.timeout,
-              waitUntil: 'networkidle',
-            });
-          } else {
-            logger.warn('Missing URL for goto action');
-          }
+          await page.goto(step.url, {
+            timeout: step.timeout || BROWSER_CONFIG.timeout,
+            waitUntil: 'networkidle',
+          });
           break;
           
         case 'click':
-          if ('selector' in step) {
-            await page.click(step.selector, {
-              timeout: step.timeout || BROWSER_CONFIG.timeout,
-            });
-          } else {
-            logger.warn('Missing selector for click action');
-          }
+          await page.click(step.selector, {
+            timeout: step.timeout || BROWSER_CONFIG.timeout,
+          });
           break;
           
         case 'fill':
-          if ('selector' in step && 'value' in step) {
-            await page.fill(step.selector, step.value, {
-              timeout: step.timeout || BROWSER_CONFIG.timeout,
-            });
-          } else {
-            logger.warn('Missing selector or value for fill action');
-          }
+          await page.fill(step.selector, step.value, {
+            timeout: step.timeout || BROWSER_CONFIG.timeout,
+          });
           break;
           
         case 'waitForSelector':
-          if ('selector' in step) {
-            await page.waitForSelector(step.selector, {
-              state: ('state' in step ? step.state : 'visible') as 'attached' | 'detached' | 'visible' | 'hidden',
-              timeout: step.timeout || BROWSER_CONFIG.timeout,
-            });
-          } else {
-            logger.warn('Missing selector for waitForSelector action');
-          }
+          await page.waitForSelector(step.selector, {
+            state: step.state || 'visible',
+            timeout: step.timeout || BROWSER_CONFIG.timeout,
+          });
           break;
           
         case 'screenshot':
           const screenshot = await page.screenshot({
-            path: 'path' in step ? step.path : undefined,
-            fullPage: 'fullPage' in step ? step.fullPage : false,
+            path: step.path,
+            fullPage: step.fullPage || false,
           });
           // 在M1阶段，我们仅记录截图大小，实际存储将在M2实现
           logger.info('Screenshot captured', { size: screenshot.length });
           break;
           
         default:
-          logger.warn(`Unknown step action: ${action}`);
+          // TypeScript should prevent this, but keep for runtime safety
+          logger.warn(`Unknown step action: ${(step as any).action}`);
           continue;
       }
 
-      logger.info(`Completed step ${stepsExecuted}`, { action: step.action || 'unknown' });
+      logger.info(`Completed step ${stepsExecuted}`, { action: step.action });
     }
 
     return {
