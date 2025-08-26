@@ -2,9 +2,15 @@ import { Browser } from 'playwright';
 import { createBrowserInstance, closeBrowserInstance } from '../../src/runner/browser';
 import { executeSteps } from '../../src/runner/steps';
 
-// Mock the modules
-jest.mock('../../src/runner/browser');
-jest.mock('../../src/runner/steps');
+// Mock the modules properly
+jest.mock('../../src/runner/browser', () => ({
+  createBrowserInstance: jest.fn(),
+  closeBrowserInstance: jest.fn(),
+}));
+
+jest.mock('../../src/runner/steps', () => ({
+  executeSteps: jest.fn(),
+}));
 
 describe('Runner Unit Tests', () => {
   const jobId = 'test-job-123';
@@ -77,7 +83,9 @@ describe('Runner Unit Tests', () => {
     const mockCloseBrowser = closeBrowserInstance as jest.MockedFunction<typeof closeBrowserInstance>;
     mockCloseBrowser.mockResolvedValue(undefined);
     
-    const mockBrowser = {} as Browser;
+    const mockBrowser = {
+      isConnected: jest.fn().mockReturnValue(true)
+    } as unknown as Browser;
     await closeBrowserInstance(mockBrowser, jobId);
     expect(mockCloseBrowser).toHaveBeenCalledWith(mockBrowser, jobId);
   });

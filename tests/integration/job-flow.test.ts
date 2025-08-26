@@ -1,12 +1,15 @@
-import { jobQueue } from '../../src/queue';
 import { submitJob } from '../../src/queue/producer';
 import { createWorker } from '../../src/queue/consumer';
 import { Worker } from 'bullmq';
 
-// Mock the modules
-jest.mock('../../src/queue');
-jest.mock('../../src/queue/producer');
-jest.mock('../../src/queue/consumer');
+// Mock the modules properly
+jest.mock('../../src/queue/producer', () => ({
+  submitJob: jest.fn(),
+}));
+
+jest.mock('../../src/queue/consumer', () => ({
+  createWorker: jest.fn(),
+}));
 
 describe('Job Flow Integration Test', () => {
   beforeEach(() => {

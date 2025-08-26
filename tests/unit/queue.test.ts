@@ -1,29 +1,82 @@
-import { jobQueue, checkQueueHealth } from '../../src/queue';
+import { checkQueueHealth } from '../../src/queue';
 import { submitJob } from '../../src/queue/producer';
 
-// Mock the modules at the top level
-jest.mock('../../src/queue');
-jest.mock('../../src/queue/producer');
+// Mock external dependencies but test the actual functions
+jest.mock('ioredis');
+jest.mock('bullmq');
+jest.mock('../../src/logger');
+
+// Mock the config
+jest.mock('../../src/config', () => {
+  const mockQueueConfig = {
+    name: 'test-queue',
+    redis: {
+      host: 'localhost',
+      port: 6379,
+    },
+    defaultJobOptions: {
+      attempts: 1,
+      removeOnComplete: { age: 86400 },
+      removeOnFail: { age: 604800 },
+      timeout: 300000,
+    },
+  };
+  
+  const mockBrowserConfig = {
+    headless: true,
+    defaultViewport: {
+      width: 1280,
+      height: 720,
+    },
+    args: [],
+    timeout: 30000,
+  };
+  
+  return {
+    BASE_CONFIG: {
+      env: 'test',
+      port: 3000,
+      logLevel: 'error',
+    },
+    QUEUE_CONFIG: mockQueueConfig,
+    BROWSER_CONFIG: mockBrowserConfig,
+    CONFIG: {
+      env: 'test',
+      port: 3000,
+      logLevel: 'error',
+      queue: mockQueueConfig,
+      browser: mockBrowserConfig,
+    },
+  };
+});
+
+// Mock validation utility
+jest.mock('../../src/utils/validation', () => ({
+  validateTaskParams: jest.fn(),
+}));
 
 describe('Queue Unit Tests', () => {
   beforeEach(() => {
-    // Reset mocks before each test
+    // Reset all mocks before each test
     jest.clearAllMocks();
+    
+    // Setup validation mock to return valid by default
+    const { validateTaskParams } = require('../../src/utils/validation');
+    validateTaskParams.mockReturnValue({ isValid: true, errors: [] });
   });
 
-  test('Should check queue health', async () => {
-    // Mock the checkQueueHealth function
-    const mockCheckQueueHealth = checkQueueHealth as jest.MockedFunction<typeof checkQueueHealth>;
-    mockCheckQueueHealth.mockResolvedValue({
-      isConnected: true,
-      pendingJobs: 0,
-      name: 'test-queue'
-    });
-
+  test('Should check queue health with connected Redis', async () => {
+    // The checkQueueHealth function should return connected status when Redis is ready
     const health = await checkQueueHealth();
+    
+    expect(health).toHaveProperty('isConnected');
+    expect(health).toHaveProperty('pendingJobs');
+    expect(health).toHaveProperty('name');
+    expect(health.name).toBe('test-queue');
+    
+    // With mocked Redis status as 'ready', it should be connected
     expect(health.isConnected).toBe(true);
     expect(health.pendingJobs).toBe(0);
-    expect(health.name).toBe('test-queue');
   });
 
   test('Should submit a valid job', async () => {
@@ -32,10 +85,6 @@ describe('Queue Unit Tests', () => {
       steps: [{ action: 'goto' as const, url: 'https://example.com' }],
     };
 
-    // Mock the submitJob function
-    const mockSubmitJob = submitJob as jest.MockedFunction<typeof submitJob>;
-    mockSubmitJob.mockResolvedValue('test-job-id');
-
     const jobId = await submitJob(jobParams);
     expect(jobId).toBeDefined();
     expect(typeof jobId).toBe('string');
@@ -43,11 +92,10 @@ describe('Queue Unit Tests', () => {
   });
 
   test('Should reject invalid job parameters', async () => {
-    // Mock the submitJob function to throw an error
-    const mockSubmitJob = submitJob as jest.MockedFunction<typeof submitJob>;
-    mockSubmitJob.mockRejectedValue(new Error('Invalid job parameters'));
+    const { validateTaskParams } = require('../../src/utils/validation');
+    validateTaskParams.mockReturnValueOnce({ isValid: false, errors: ['Invalid browser type'] });
 
-    // @ts-ignore - 故意传入无效参数
-    await expect(submitJob({ browser: 'invalid', steps: [] })).rejects.toThrow('Invalid job parameters');
+    const invalidParams = { browser: 'invalid' as any, steps: [] };
+    await expect(submitJob(invalidParams)).rejects.toThrow('Invalid task parameters');
   });
 });

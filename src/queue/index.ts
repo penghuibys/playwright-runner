@@ -37,10 +37,10 @@ export { Worker, redisConnection };
 // 检查队列状态
 export const checkQueueHealth = async () => {
   try {
-    const metrics = await jobQueue.getMetrics();
+    const waiting = await jobQueue.getWaiting();
     return {
       isConnected: redisConnection.status === 'ready',
-      pendingJobs:  0,
+      pendingJobs: waiting.length,
       name: QUEUE_CONFIG.name
     };
   } catch (error) {

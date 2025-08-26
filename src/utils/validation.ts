@@ -43,6 +43,11 @@ export const validateTaskParams = (params: TaskParams) => {
             errors.push(`Step ${index} (fill): Missing or invalid value`);
           }
           break;
+        case 'screenshot':
+          // screenshot doesn't require additional validation
+          break;
+        default:
+          errors.push(`Step ${index}: Unknown action type`);
       }
     });
   }

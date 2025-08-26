@@ -29,6 +29,7 @@ jest.mock('bullmq', () => {
   const mockQueue = {
     add: jest.fn().mockResolvedValue(mockJob),
     getMetrics: jest.fn().mockResolvedValue({ waiting: 0, active: 0, completed: 0, failed: 0 }),
+    getWaiting: jest.fn().mockResolvedValue([]),
     waitUntilReady: jest.fn().mockResolvedValue(undefined),
     obliterate: jest.fn().mockResolvedValue(undefined),
     close: jest.fn().mockResolvedValue(undefined),

@@ -2,11 +2,11 @@
  * 任务步骤类型定义
  */
 export type TaskStep = 
-  | { action?: 'goto'; url: string; timeout?: number }
-  | { action?: 'click'; selector: string; timeout?: number }
-  | { action?: 'fill'; selector: string; value: string; timeout?: number }
-  | { action?: 'waitForSelector'; selector: string; state?: 'attached' | 'detached' | 'visible' | 'hidden'; timeout?: number }
-  | { action?: 'screenshot'; path?: string; fullPage?: boolean };
+  | { action: 'goto'; url: string; timeout?: number }
+  | { action: 'click'; selector: string; timeout?: number }
+  | { action: 'fill'; selector: string; value: string; timeout?: number }
+  | { action: 'waitForSelector'; selector: string; state?: 'attached' | 'detached' | 'visible' | 'hidden'; timeout?: number }
+  | { action: 'screenshot'; path?: string; fullPage?: boolean };
 
 /**
  * 任务参数类型
