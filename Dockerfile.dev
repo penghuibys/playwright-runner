@@ -21,6 +21,9 @@ WORKDIR /home/appuser/app
 COPY package*.json ./
 RUN npm install
 
+# 安装 Playwright 浏览器（需要在切换用户前安装）
+RUN npx playwright install chromium --with-deps
+
 # 复制源码
 COPY . .
 
