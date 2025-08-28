@@ -4,7 +4,7 @@ services:
   runner:
     build:
       context: .
-      target: base # 使用基础镜像进行开发
+      target: base # Use base image for development
     command: npm run dev
     env_file:
       - .env.docker
@@ -15,7 +15,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    user: "node" # 开发环境使用node用户以便文件权限匹配
+    user: "node" # Use node user in development environment for file permission matching
 
   runner-prod:
     build:
