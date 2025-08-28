@@ -1,7 +1,7 @@
-# 基础镜像（含Node.js 18和TypeScript）
+# Base image (with Node.js 18 and TypeScript)
 FROM node:18-slim AS base
 
-# 安装系统依赖（Playwright需要的库）
+# Install system dependencies (required libraries for Playwright)
 RUN apt-get update && apt-get install -y \
     # Basic utilities
     curl \
@@ -30,49 +30,49 @@ RUN apt-get update && apt-get install -y \
     libgdk-pixbuf2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# 创建非root用户（避免权限风险）
+# Create non-root user (avoid permission risks)
 RUN useradd -m appuser
 USER appuser
 WORKDIR /home/appuser/app
 
-# 构建阶段
+# Build stage
 FROM base AS builder
 
-# 复制package文件
+# Copy package files
 COPY package*.json ./
 COPY tsconfig.json ./
 
-# 安装所有依赖（包括开发依赖）
+# Install all dependencies (including dev dependencies)
 RUN npm ci
 
-# 复制源代码
+# Copy source code
 COPY src ./src
 COPY tests ./tests
 
-# 编译TypeScript
+# Compile TypeScript
 RUN npm run build
 
-# 生产阶段
+# Production stage
 FROM base AS production
 
-# 复制package文件
+# Copy package files
 COPY package*.json ./
 
-# 仅安装生产依赖
+# Install production dependencies only
 RUN npm ci --only=production
 
-# 安装Playwright浏览器（需要在npm install之后）
-# 切换到root用户来安装系统依赖，然后切回appuser
+# Install Playwright browsers (needs to be after npm install)
+# Switch to root user to install system dependencies, then switch back to appuser
 USER root
 RUN npx playwright install-deps chromium
 USER appuser
 RUN npx playwright install chromium
 
-# 复制编译结果
+# Copy compiled results
 COPY --from=builder /home/appuser/app/dist ./dist
 
-# 暴露健康检查端口
+# Expose health check port
 EXPOSE 3000
 
-# 启动命令
+# Startup command
 CMD ["node", "dist/index.js"]

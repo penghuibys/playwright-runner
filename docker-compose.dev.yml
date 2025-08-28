@@ -15,7 +15,7 @@ services:
     depends_on:
       - redis
     env_file:
-      - .env.docker   # 自动加载 .env.docker 文件里的变量
+      - .env.docker   # Automatically load variables from .env.docker file
 
   redis:
     image: redis:7.2
