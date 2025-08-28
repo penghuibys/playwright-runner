@@ -2,33 +2,52 @@ FROM node:18-slim
 
 # 安装 Playwright 所需依赖
 RUN apt-get update && apt-get install -y \
+    # Basic utilities
+    curl \
+    wget \
+    gnupg \
+    ca-certificates \
+    # Playwright browser dependencies
     libnss3 \
+    libnspr4 \
     libatk-bridge2.0-0 \
-    libcups2 \
+    libdrm2 \
     libxkbcommon0 \
     libxcomposite1 \
     libxdamage1 \
-    libxfixes3 \
     libxrandr2 \
     libgbm1 \
-    libpango-1.0-0 \
-    curl \
+    libxss1 \
+    libgconf-2-4 \
+    libxtst6 \
+    libxrandr2 \
+    libasound2 \
+    libpangocairo-1.0-0 \
+    libatk1.0-0 \
+    libcairo-gobject2 \
+    libgtk-3-0 \
+    libgdk-pixbuf2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
+# 创建用户和目录
+RUN useradd -m appuser
 WORKDIR /home/appuser/app
 
-# 先复制依赖文件并安装（这里会把 devDependencies 全部装上）
+# 复制依赖文件并安装 npm 依赖
 COPY package*.json ./
 RUN npm install
 
-# 安装 Playwright 浏览器（需要在切换用户前安装）
-RUN npx playwright install chromium --with-deps
+# 安装 Playwright 系统依赖（需要 root 权限）
+RUN npx playwright install-deps chromium
+
+# 切换到 appuser 并设置工作目录所有权
+RUN chown -R appuser:appuser /home/appuser
+USER appuser
+
+# 以 appuser 身份安装 Playwright 浏览器（确保安装到正确的用户缓存目录）
+RUN npx playwright install chromium
 
 # 复制源码
-COPY . .
-
-# 创建非 root 用户并切换
-RUN useradd -m appuser && chown -R appuser:appuser /home/appuser
-USER appuser
+COPY --chown=appuser:appuser . .
 
 CMD ["npm", "run", "dev"]
