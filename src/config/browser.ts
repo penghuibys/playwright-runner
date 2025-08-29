@@ -23,5 +23,5 @@ export const BROWSER_CONFIG: BrowserConfig = {
     '--no-first-run',
     '--no-zygote',
   ],
-  timeout: 30000, // 默认步骤超时时间30秒
+  timeout: 30000, // Default step timeout 30 seconds
 };

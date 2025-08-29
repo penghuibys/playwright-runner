@@ -5,19 +5,19 @@ import { registerShutdownHooks } from './utils/shutdown';
 import CONFIG from './config';
 
 /**
- * 应用主函数
+ * Application main function
  */
 const main = async () => {
   logger.info(`Starting Playwright Runner (${CONFIG.env} environment)`);
 
   try {
-    // 启动健康检查服务器
+    // Start health check server
     await startHealthServer();
 
-    // 创建并启动任务工作器
+    // Create and start task worker
     const worker = createWorker();
 
-    // 注册优雅关闭钩子
+    // Register graceful shutdown hooks
     registerShutdownHooks(worker);
 
     logger.info('Playwright Runner started successfully');
@@ -27,5 +27,5 @@ const main = async () => {
   }
 };
 
-// 启动应用
+// Start the application
 main();
