@@ -4,7 +4,7 @@ import { QUEUE_CONFIG } from '../config';
 import { TaskParams, TaskResult } from '../types';
 import logger from '../logger';
 
-// 创建Redis连接
+// Create Redis connection
 const redisConnection = new IORedis({
   host: QUEUE_CONFIG.redis.host,
   port: QUEUE_CONFIG.redis.port,
@@ -13,7 +13,7 @@ const redisConnection = new IORedis({
   enableReadyCheck: true,
 });
 
-// 监听Redis连接事件
+// Listen to Redis connection events
 redisConnection.on('connect', () => {
   logger.info('Redis connection established');
 });
@@ -22,7 +22,7 @@ redisConnection.on('error', (error) => {
   logger.error('Redis connection error', { error: error.message });
 });
 
-// 创建任务队列
+// Create task queue
 export const jobQueue = new Queue<TaskParams, TaskResult>(
   QUEUE_CONFIG.name,
   {
@@ -31,10 +31,10 @@ export const jobQueue = new Queue<TaskParams, TaskResult>(
   }
 );
 
-// 导出Worker类型和连接
+// Export Worker type and connection
 export { Worker, redisConnection };
 
-// 检查队列状态
+// Check queue status
 export const checkQueueHealth = async () => {
   try {
     const waiting = await jobQueue.getWaiting();

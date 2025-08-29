@@ -21,9 +21,9 @@ export const QUEUE_CONFIG: QueueConfig = {
     password: process.env.REDIS_PASSWORD,
   },
   defaultJobOptions: {
-    attempts: 1, // M1阶段暂不实现重试
-    removeOnComplete: { age: 86400 }, // 成功任务保留24小时
-    removeOnFail: { age: 604800 }, // 失败任务保留7天
-    timeout: 300000, // 任务超时时间5分钟
+    attempts: 1, // No retry implementation in M1 phase
+    removeOnComplete: { age: 86400 }, // Keep successful jobs for 24 hours
+    removeOnFail: { age: 604800 }, // Keep failed jobs for 7 days
+    timeout: 300000, // Job timeout 5 minutes
   },
 };

@@ -4,11 +4,11 @@ import { BROWSER_CONFIG } from '../config';
 import { createJobLogger } from '../logger';
 
 /**
- * 执行任务步骤
- * @param browser 浏览器实例
- * @param jobId 任务ID
- * @param steps 任务步骤列表
- * @returns 执行结果
+ * Execute task steps
+ * @param browser Browser instance
+ * @param jobId Task ID
+ * @param steps Task steps list
+ * @returns Execution result
  */
 export const executeSteps = async (
   browser: Browser,
@@ -20,18 +20,18 @@ export const executeSteps = async (
   let stepsExecuted = 0;
 
   try {
-    // 创建新页面
+    // Create new page
     page = await browser.newPage({
       viewport: BROWSER_CONFIG.defaultViewport,
     });
     logger.info('Created new page for task execution');
 
-    // 执行每个步骤
+    // Execute each step
     for (const [index, step] of steps.entries()) {
       stepsExecuted = index + 1;
       logger.info(`Executing step ${stepsExecuted}`, { action: step.action });
 
-      // 根据步骤类型执行相应操作
+      // Execute corresponding operation based on step type
       switch (step.action) {
         case 'goto':
           await page.goto(step.url, {
@@ -64,7 +64,7 @@ export const executeSteps = async (
             path: step.path,
             fullPage: step.fullPage || false,
           });
-          // 在M1阶段，我们仅记录截图大小，实际存储将在M2实现
+          // In M1 phase, we only log screenshot size, actual storage will be implemented in M2
           logger.info('Screenshot captured', { size: screenshot.length });
           break;
           

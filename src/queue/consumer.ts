@@ -5,15 +5,15 @@ import { TaskParams, TaskResult } from '../types';
 import { executeTask } from '../runner';
 import logger from '../logger';
 
-// 跟踪工作器状态
+// Track worker status
 let workerStatus = {
   isRunning: false,
   lastActive: 0,
 };
 
 /**
- * 创建任务消费者
- * @returns Worker实例
+ * Create task consumer
+ * @returns Worker instance
  */
 export const createWorker = () => {
   logger.info('Initializing task worker');
@@ -21,7 +21,7 @@ export const createWorker = () => {
   const worker = new Worker<TaskParams, TaskResult>(
     QUEUE_CONFIG.name,
     async (job) => {
-      // 更新工作器状态
+      // Update worker status
       workerStatus.isRunning = true;
       workerStatus.lastActive = Date.now();
       
@@ -30,16 +30,16 @@ export const createWorker = () => {
         attempts: job.attemptsMade,
       });
 
-      // 执行任务
+      // Execute task
       return executeTask(job.id!, job.data);
     },
     {
       connection: redisConnection,
-      concurrency: 1, // M1阶段暂用单并发，M5会扩展
+      concurrency: 1, // Use single concurrency in M1 phase, will expand in M5
     }
   );
 
-  // 监听工作器事件
+  // Listen to worker events
   worker.on('ready', () => {
     logger.info('Worker is ready to process jobs');
     workerStatus.isRunning = true;
@@ -81,5 +81,5 @@ export const createWorker = () => {
   return worker;
 };
 
-// 获取工作器状态
+// Get worker status
 export const getWorkerStatus = () => ({ ...workerStatus });

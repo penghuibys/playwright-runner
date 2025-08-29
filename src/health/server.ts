@@ -10,17 +10,17 @@ const app = express();
 app.use(express.json());
 
 /**
- * 健康检查端点
+ * Health check endpoint
  */
 app.get('/health', async (req: Request, res: Response<HealthStatus>) => {
   try {
-    // 检查队列健康状态
+    // Check queue health status
     const queueHealth = await checkQueueHealth();
     
-    // 获取工作器状态
+    // Get worker status
     const workerStatus = getWorkerStatus();
 
-    // 构建健康状态响应
+    // Build health status response
     const status: HealthStatus = {
       status: queueHealth.isConnected && workerStatus.isRunning ? 'healthy' : 'unhealthy',
       timestamp: Date.now(),
@@ -53,13 +53,13 @@ app.get('/health', async (req: Request, res: Response<HealthStatus>) => {
 });
 
 /**
- * 任务提交端点
+ * Task submission endpoint
  */
 app.post('/submit', async (req: Request, res: Response) => {
   try {
     const taskParams: TaskParams = req.body;
     
-    // 提交任务到队列
+    // Submit task to queue
     const jobId = await submitJob(taskParams);
     
     logger.info('Task submitted via HTTP', { jobId, ip: req.ip });
@@ -83,7 +83,7 @@ app.post('/submit', async (req: Request, res: Response) => {
 });
 
 /**
- * 获取任务状态端点
+ * Get task status endpoint
  */
 app.get('/status/:jobId', async (req: Request, res: Response) => {
   try {
@@ -123,7 +123,7 @@ app.get('/status/:jobId', async (req: Request, res: Response) => {
 });
 
 /**
- * 启动健康检查服务器
+ * Start health check server
  */
 export const startHealthServer = () => {
   return new Promise<void>((resolve) => {
