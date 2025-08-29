@@ -4,10 +4,10 @@ import { TaskParams } from '../types';
 import { createJobLogger } from '../logger';
 
 /**
- * 根据任务参数创建浏览器实例
- * @param jobId 任务ID
- * @param params 任务参数
- * @returns 浏览器实例
+ * Create browser instance based on task parameters
+ * @param jobId Task ID
+ * @param params Task parameters
+ * @returns Browser instance
  */
 export const createBrowserInstance = async (
   jobId: string,
@@ -19,7 +19,7 @@ export const createBrowserInstance = async (
   try {
     let browser: Browser;
     
-    // 根据指定浏览器类型启动
+    // Launch based on specified browser type
     switch (params.browser) {
       case 'chromium':
         browser = await chromium.launch({
@@ -39,7 +39,7 @@ export const createBrowserInstance = async (
         });
         break;
       default:
-        // 默认使用chromium
+        // Default to chromium
         browser = await chromium.launch({
           headless: BROWSER_CONFIG.headless,
           args: BROWSER_CONFIG.args,
@@ -57,9 +57,9 @@ export const createBrowserInstance = async (
 };
 
 /**
- * 关闭浏览器实例
- * @param browser 浏览器实例
- * @param jobId 任务ID
+ * Close browser instance
+ * @param browser Browser instance
+ * @param jobId Task ID
  */
 export const closeBrowserInstance = async (browser: Browser, jobId: string): Promise<void> => {
   const logger = createJobLogger(jobId);

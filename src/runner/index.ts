@@ -5,10 +5,10 @@ import { executeSteps } from './steps';
 import { createJobLogger } from '../logger';
 
 /**
- * 执行任务的主函数
- * @param jobId 任务ID
- * @param params 任务参数
- * @returns 任务执行结果
+ * Main function for task execution
+ * @param jobId Task ID
+ * @param params Task parameters
+ * @returns Task execution result
  */
 export const executeTask = async (
   jobId: string,
@@ -21,13 +21,13 @@ export const executeTask = async (
   try {
     logger.info('Starting task execution', { browser: params.browser, stepsCount: params.steps.length });
 
-    // 创建浏览器实例
+    // Create browser instance
     browser = await createBrowserInstance(jobId, params);
 
-    // 执行任务步骤
+    // Execute task steps
     const stepResult = await executeSteps(browser, jobId, params.steps);
 
-    // 计算执行时间
+    // Calculate execution time
     const duration = Date.now() - startTime;
 
     const result: TaskResult = {
@@ -50,7 +50,7 @@ export const executeTask = async (
     const result: TaskResult = {
       status: 'failed',
       jobId,
-      stepsExecuted: 0, // 实际执行的步骤数在executeSteps中处理
+      stepsExecuted: 0, // Actual executed steps count is handled in executeSteps
       totalSteps: params.steps.length,
       duration,
       error: (error as Error).message,
@@ -63,7 +63,7 @@ export const executeTask = async (
 
     return result;
   } finally {
-    // 确保浏览器实例关闭
+    // Ensure browser instance is closed
     if (browser) {
       await closeBrowserInstance(browser, jobId);
     }

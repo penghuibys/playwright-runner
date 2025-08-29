@@ -4,12 +4,12 @@ import logger from '../logger';
 import { validateTaskParams } from '../utils/validation';
 
 /**
- * 提交新任务到队列
- * @param params 任务参数
- * @returns 任务ID
+ * Submit new task to queue
+ * @param params Task parameters
+ * @returns Task ID
  */
 export const submitJob = async (params: TaskParams): Promise<string> => {
-  // 验证任务参数
+  // Validate task parameters
   const validation = validateTaskParams(params);
   if (!validation.isValid) {
     logger.error('Invalid task parameters', { errors: validation.errors });
@@ -17,7 +17,7 @@ export const submitJob = async (params: TaskParams): Promise<string> => {
   }
 
   try {
-    // 添加任务到队列
+    // Add task to queue
     const job = await jobQueue.add('browser-task', params);
     logger.info('Task submitted to queue', { jobId: job.id, browser: params.browser || 'default', stepsCount: params.steps.length });
     return job.id!;
@@ -27,7 +27,7 @@ export const submitJob = async (params: TaskParams): Promise<string> => {
   }
 };
 
-// 示例：命令行提交任务
+// Example: Submit task from command line
 if (require.main === module) {
   const testParams: TaskParams = {
     browser: 'chromium',

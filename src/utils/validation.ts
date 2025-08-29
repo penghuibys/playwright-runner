@@ -1,32 +1,32 @@
 import { TaskParams } from '../types';
 
 /**
- * 验证任务参数
- * @param params 待验证的任务参数
- * @returns 验证结果
+ * Validate task parameters
+ * @param params Task parameters to validate
+ * @returns Validation result
  */
 export const validateTaskParams = (params: TaskParams) => {
   const errors: string[] = [];
 
-  // 验证浏览器类型
+  // Validate browser type
   if (params.browser && !['chromium', 'firefox', 'webkit'].includes(params.browser)) {
     errors.push(`Invalid browser type: ${params.browser}. Allowed: chromium, firefox, webkit`);
   }
 
-  // 验证步骤数组
+  // Validate steps array
   if (!params.steps || !Array.isArray(params.steps)) {
     errors.push('Steps must be a non-empty array');
   } else if (params.steps.length === 0) {
     errors.push('Steps array cannot be empty');
   } else {
-    // 验证每个步骤
+    // Validate each step
     params.steps.forEach((step, index) => {
       if (!step || typeof step !== 'object' || !step.action) {
         errors.push(`Step ${index}: Missing or invalid action`);
         return;
       }
 
-      // 验证特定步骤的必填字段
+      // Validate required fields for specific steps
       switch (step.action) {
         case 'goto':
           if (!step.url || typeof step.url !== 'string') {
@@ -52,7 +52,7 @@ export const validateTaskParams = (params: TaskParams) => {
     });
   }
 
-  // 验证超时时间
+  // Validate timeout
   if (params.timeout !== undefined && (typeof params.timeout !== 'number' || params.timeout <= 0)) {
     errors.push('Timeout must be a positive number');
   }

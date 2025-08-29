@@ -2,21 +2,21 @@ import dotenv from 'dotenv';
 import { QUEUE_CONFIG, QueueConfig } from './queue';
 import { BROWSER_CONFIG, BrowserConfig } from './browser';
 
-// 加载环境变量
+// Load environment variables
 dotenv.config();
 
-// 基础配置
+// Base configuration
 export const BASE_CONFIG = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3000', 10),
   logLevel: process.env.LOG_LEVEL || 'info',
 };
 
-// 导出其他模块配置
+// Export other module configurations
 export { QUEUE_CONFIG } from './queue';
 export { BROWSER_CONFIG } from './browser';
 
-// 聚合所有配置
+// Aggregate all configurations
 export const CONFIG = {
   ...BASE_CONFIG,
   queue: QUEUE_CONFIG,

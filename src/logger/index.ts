@@ -1,19 +1,19 @@
 import winston, { Logger } from 'winston';
 import { CONFIG } from '../config';
 
-// 定义日志格式
+// Define log format
 const logFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.json(),
 );
 
-// 创建日志实例
+// Create logger instance
 const logger: Logger = winston.createLogger({
   level: CONFIG.logLevel,
   format: logFormat,
   defaultMeta: { service: 'playwright-runner' },
   transports: [
-    // 控制台输出
+    // Console output
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),
@@ -23,7 +23,7 @@ const logger: Logger = winston.createLogger({
   ],
 });
 
-// 为特定任务创建带上下文的日志
+// Create job logger with context for specific tasks
 export const createJobLogger = (jobId: string) => {
   return logger.child({ jobId });
 };

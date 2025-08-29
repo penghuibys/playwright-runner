@@ -1,5 +1,5 @@
 /**
- * 任务步骤类型定义
+ * Task step type definition
  */
 export type TaskStep = 
   | { action: 'goto'; url: string; timeout?: number }
@@ -9,30 +9,30 @@ export type TaskStep =
   | { action: 'screenshot'; path?: string; fullPage?: boolean };
 
 /**
- * 任务参数类型
+ * Task parameters type
  */
 export interface TaskParams {
-  browser?: 'chromium' | 'firefox' | 'webkit'; // 支持自定义浏览器
+  browser?: 'chromium' | 'firefox' | 'webkit'; // Support custom browser
   steps: TaskStep[];
-  timeout?: number; // 整体任务超时时间(ms)
-  [key: string]: any; // 允许额外参数
+  timeout?: number; // Overall task timeout (ms)
+  [key: string]: any; // Allow additional parameters
 }
 
 /**
- * 任务执行结果类型
+ * Task execution result type
  */
 export interface TaskResult {
   status: 'success' | 'failed' | 'completed';
   jobId: string;
   stepsExecuted: number;
   totalSteps?: number;
-  duration: number; // 执行时间(ms)
+  duration: number; // Execution time (ms)
   error?: string;
   [key: string]: any;
 }
 
 /**
- * 健康检查状态类型
+ * Health check status type
  */
 export interface HealthStatus {
   status: 'healthy' | 'unhealthy';
