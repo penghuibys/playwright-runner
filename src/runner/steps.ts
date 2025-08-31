@@ -2,6 +2,7 @@ import { Browser, Page } from 'playwright';
 import { TaskStep } from '../types';
 import { BROWSER_CONFIG } from '../config';
 import { createJobLogger } from '../logger';
+import { generateScreenshotPath } from '../utils/filename';
 
 /**
  * Execute task steps
@@ -60,12 +61,17 @@ export const executeSteps = async (
           break;
           
         case 'screenshot':
+          // Generate unique filename if path is not provided or is a common fixed name
+          const screenshotPath = generateScreenshotPath(step.path);
           const screenshot = await page.screenshot({
-            path: step.path,
+            path: screenshotPath,
             fullPage: step.fullPage || false,
           });
-          // In M1 phase, we only log screenshot size, actual storage will be implemented in M2
-          logger.info('Screenshot captured', { size: screenshot.length });
+          logger.info('Screenshot captured', { 
+            path: screenshotPath,
+            originalPath: step.path,
+            size: screenshot.length 
+          });
           break;
           
         default:
