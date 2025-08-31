@@ -1,5 +1,16 @@
 import { randomBytes } from 'crypto';
-import { extname, basename } from 'path';
+import { extname, basename, join } from 'path';
+import { mkdirSync, existsSync } from 'fs';
+
+/**
+ * Ensure target directory exists
+ * @param dirPath Directory path to create
+ */
+const ensureDirectoryExists = (dirPath: string): void => {
+  if (!existsSync(dirPath)) {
+    mkdirSync(dirPath, { recursive: true });
+  }
+};
 
 /**
  * Generate a unique filename with random characters
@@ -56,18 +67,26 @@ export const shouldMakeUnique = (filename?: string): boolean => {
 };
 
 /**
- * Generate a unique screenshot path
+ * Generate a unique screenshot path in target directory
  * @param originalPath Optional original path
- * @returns Unique screenshot path
+ * @returns Unique screenshot path in target/ directory
  */
 export const generateScreenshotPath = (originalPath?: string): string => {
+  // Ensure target directory exists
+  const targetDir = 'target';
+  ensureDirectoryExists(targetDir);
+  
+  let filename: string;
+  
   if (!originalPath || shouldMakeUnique(originalPath)) {
     // Generate completely new unique filename
     const extension = originalPath ? extname(originalPath) || '.png' : '.png';
     const baseName = originalPath ? basename(originalPath, extname(originalPath)) : 'screenshot';
-    return generateUniqueFilename(baseName, extension);
+    filename = generateUniqueFilename(baseName, extension);
+  } else {
+    // Use original filename but still place in target directory
+    filename = basename(originalPath);
   }
   
-  // Use original path as-is if it doesn't appear to be a fixed name
-  return originalPath;
+  return join(targetDir, filename);
 };
