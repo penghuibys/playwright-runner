@@ -57,6 +57,7 @@ export const shouldMakeUnique = (filename?: string): boolean => {
     'screenshot.png',
     'example-screenshot.png', 
     'test-screenshot.png',
+    'my-screenshot.png',
     'test.png',
     'image.png',
     'capture.png'
