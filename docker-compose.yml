@@ -2,7 +2,7 @@ services:
   runner:
     build:
       context: .
-      target: base # Use base image for development
+      dockerfile: Dockerfile.dev
     command: npm run dev
     env_file:
       - .env.docker
@@ -18,7 +18,6 @@ services:
   runner-prod:
     build:
       context: .
-      target: production
     ports:
       - "3001:3000"
     environment:
@@ -26,6 +25,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - LOG_LEVEL=info
+      - PLAYWRIGHT_HEADLESS=true
     depends_on:
       - redis
     healthcheck:
