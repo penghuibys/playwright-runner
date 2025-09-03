@@ -250,4 +250,5 @@ MIT License - see [LICENSE](LICENSE) file for details.
 🎭 **Ready to automate?** Check out [`example-usage.md`](example-usage.md) for detailed examples and use cases.
 ---
 
+
 Happy automating! 🎭
