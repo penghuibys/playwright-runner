@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { QUEUE_CONFIG, QueueConfig } from './queue';
 import { BROWSER_CONFIG, BrowserConfig } from './browser';
+import { REPORT_CONFIG, ReportConfig } from './report';
 
 // Load environment variables
 dotenv.config();
@@ -15,12 +16,14 @@ export const BASE_CONFIG = {
 // Export other module configurations
 export { QUEUE_CONFIG } from './queue';
 export { BROWSER_CONFIG } from './browser';
+export { REPORT_CONFIG } from './report';
 
 // Aggregate all configurations
 export const CONFIG = {
   ...BASE_CONFIG,
   queue: QUEUE_CONFIG,
   browser: BROWSER_CONFIG,
+  report: REPORT_CONFIG,
 };
 
 export default CONFIG;

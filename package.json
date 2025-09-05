@@ -9,11 +9,14 @@
     "start": "node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:report": "ts-node test-report.ts",
+    "report:open": "node scripts/open-report.js",
     "lint": "eslint 'src/**/*.{js,ts}'",
     "format": "prettier --write 'src/**/*.{js,ts}'",
     "prepare": "husky install"
   },
   "dependencies": {
+    "@playwright/test": "^1.39.0",
     "@types/express": "^4.17.17",
     "bullmq": "^5.6.2",
     "dotenv": "^16.3.1",
