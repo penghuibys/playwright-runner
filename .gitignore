@@ -7,3 +7,5 @@ dist
 examples
 
 target
+
+playwright-report
