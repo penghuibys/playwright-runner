@@ -3,6 +3,7 @@ import { TaskParams, TaskResult } from '../types';
 import { createBrowserInstance, closeBrowserInstance } from './browser';
 import { executeSteps } from './steps';
 import { createJobLogger } from '../logger';
+import { reportGenerator } from './report';
 
 /**
  * Main function for task execution
@@ -38,9 +39,26 @@ export const executeTask = async (
       totalSteps: stepResult.steps || params.steps.length,
     };
 
+    // Add result to report generator
+    reportGenerator.addTaskResult(result, params.steps);
+
+    // Generate HTML report
+    try {
+      const reportPath = await reportGenerator.generateReport();
+      if (reportPath) {
+        result.reportPath = reportPath;
+        logger.info('HTML report generated', { reportPath });
+      }
+    } catch (reportError) {
+      logger.warn('Failed to generate HTML report', { 
+        error: (reportError as Error).message 
+      });
+    }
+
     logger.info('Task execution completed successfully', {
       duration,
       stepsExecuted: stepResult.stepsExecuted,
+      reportPath: result.reportPath,
     });
 
     return result;
@@ -56,9 +74,26 @@ export const executeTask = async (
       error: (error as Error).message,
     };
 
+    // Add failed result to report generator
+    reportGenerator.addTaskResult(result, params.steps);
+
+    // Generate HTML report even for failed tasks
+    try {
+      const reportPath = await reportGenerator.generateReport();
+      if (reportPath) {
+        result.reportPath = reportPath;
+        logger.info('HTML report generated for failed task', { reportPath });
+      }
+    } catch (reportError) {
+      logger.warn('Failed to generate HTML report for failed task', { 
+        error: (reportError as Error).message 
+      });
+    }
+
     logger.error('Task execution failed', {
       duration,
       error: (error as Error).message,
+      reportPath: result.reportPath,
     });
 
     return result;
