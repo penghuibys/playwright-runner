@@ -28,6 +28,7 @@ export interface TaskResult {
   totalSteps?: number;
   duration: number; // Execution time (ms)
   error?: string;
+  reportPath?: string; // Path to generated HTML report
   [key: string]: any;
 }
 

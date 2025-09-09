@@ -7,6 +7,7 @@ A secure, scalable browser automation engine built on Playwright. Execute browse
 - **Queue-based Architecture**: Asynchronous task processing using BullMQ and Redis
 - **HTTP API**: Simple REST endpoints for task submission and status checking
 - **Browser Automation**: Powered by Playwright for reliable cross-browser automation
+- **HTML Reports**: Automatic generation of detailed HTML test reports
 - **Observability**: Structured logging and health monitoring
 - **Docker Support**: Containerized deployment with horizontal scaling
 - **Type Safety**: Full TypeScript implementation
@@ -137,10 +138,76 @@ console.log(`Job submitted: ${job.id}`);
   "result": {
     "status": "completed",
     "stepsExecuted": 2,
-    "duration": 2500
+    "duration": 2500,
+    "reportPath": "/path/to/playwright-report/index.html"
   }
 }
 ```
+
+## 📊 HTML Reports
+
+Playwright Runner automatically generates detailed HTML reports after task execution, providing comprehensive test results with visual step-by-step breakdowns.
+
+### Features
+
+- **Automatic Generation**: Reports are created after every task execution
+- **Beautiful UI**: Modern, responsive HTML interface with charts and statistics
+- **Detailed Steps**: View each automation step with timing and status
+- **Error Reporting**: Clear error messages and stack traces for failed tests
+- **Screenshots**: Embedded screenshots for visual verification
+- **Performance Metrics**: Execution times and duration analysis
+
+### Report Location
+
+By default, reports are generated in the `playwright-report` directory in your project root:
+
+```
+playwright-report/
+└── index.html    # Main HTML report
+```
+
+### Viewing Reports
+
+Open the generated HTML file in your browser:
+
+```bash
+# Quick open with utility script
+npm run report:open
+
+# Or open manually in your default browser
+open playwright-report/index.html
+
+# Or start a simple HTTP server
+npx http-server playwright-report
+```
+
+### Report Configuration
+
+Customize report generation through environment variables:
+
+```env
+# Enable/disable report generation
+REPORT_ENABLED=true
+
+# Output directory for reports
+REPORT_OUTPUT_DIR=./custom-reports
+
+# Report filename
+REPORT_NAME=test-results.html
+
+# Auto-open in browser (development only)
+REPORT_OPEN=false
+```
+
+### Testing Report Generation
+
+Run the test script to see HTML reports in action:
+
+```bash
+npm run test:report
+```
+
+This will execute sample tasks and generate a comprehensive HTML report.
 
 ## ⚙️ Configuration
 
@@ -159,6 +226,14 @@ REDIS_PORT=6379
 # Browser
 BROWSER_HEADLESS=true
 BROWSER_TIMEOUT=30000
+
+# HTML Reports
+REPORT_ENABLED=true
+REPORT_OUTPUT_DIR=./playwright-report
+REPORT_NAME=index.html
+REPORT_OPEN=false
+REPORT_HOST=localhost
+REPORT_PORT=9323
 ```
 
 ## 🏗 Architecture
