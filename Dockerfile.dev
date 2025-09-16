@@ -1,6 +1,6 @@
 FROM node:18-slim
 
-# 安装 Playwright 所需依赖
+# Install Playwright required dependencies
 RUN apt-get update && apt-get install -y \
     # Basic utilities
     curl \
@@ -29,25 +29,25 @@ RUN apt-get update && apt-get install -y \
     libgdk-pixbuf2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# 创建用户和目录
+# Create user and directory
 RUN useradd -m appuser
 WORKDIR /home/appuser/app
 
-# 复制依赖文件并安装 npm 依赖
+# Copy dependency files and install npm dependencies
 COPY package*.json ./
 RUN npm install
 
-# 安装 Playwright 系统依赖（需要 root 权限）
+# Install Playwright system dependencies (requires root privileges)
 RUN npx playwright install-deps chromium
 
-# 切换到 appuser 并设置工作目录所有权
+# Switch to appuser and set working directory ownership
 RUN chown -R appuser:appuser /home/appuser
 USER appuser
 
-# 以 appuser 身份安装 Playwright 浏览器（确保安装到正确的用户缓存目录）
+# Install Playwright browsers as appuser (ensure installation to correct user cache directory)
 RUN npx playwright install chromium
 
-# 复制源码
+# Copy source code
 COPY --chown=appuser:appuser . .
 
 CMD ["npm", "run", "dev"]
