@@ -9,7 +9,6 @@
     "start": "node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:report": "ts-node test-report.ts",
     "report:open": "node scripts/open-report.js",
     "lint": "eslint 'src/**/*.{js,ts}'",
     "format": "prettier --write 'src/**/*.{js,ts}'",
